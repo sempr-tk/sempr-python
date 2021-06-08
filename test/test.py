@@ -94,3 +94,14 @@ for r in res:
     print(sparql)
     for c in clist: # type: sempr.ComponentQueryResult
         print(f'-- {c.component} {c.isInferred} {c.tag}')
+
+
+# AffineTransform
+import numpy as np
+a1 = sempr.AffineTransform() # default: identity
+print(f'a1: {a1.transform}')
+
+mat = np.identity(4)
+mat[0:3, 3] = [3, 4, 5]
+a1.transform = mat
+print(f'a1: {a1.transform}')

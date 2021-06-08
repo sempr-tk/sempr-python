@@ -8,7 +8,7 @@
 namespace py = pybind11;
 using namespace sempr;
 
-PYBIND11_MODULE(semprpy, m)
+void initCore(py::module_& m)
 {
     py::options options;
     //options.disable_function_signatures();

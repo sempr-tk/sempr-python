@@ -18,7 +18,9 @@ include_directories(${pybind11_INCLUDE_DIRS})
 
 pybind11_add_module(
     semprpy
+    src/module.cpp
     src/core.cpp
+    src/components.cpp
 )
 
 target_link_libraries(semprpy PUBLIC ${sempr_LIBRARIES} ${SEMPR_RDF})
