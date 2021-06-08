@@ -117,14 +117,14 @@ void initCore(py::module_& m)
         .def("addComponent", static_cast<void(Entity::*)(Component::Ptr)>(&Entity::addComponent))
         .def("addComponent", static_cast<void(Entity::*)(Component::Ptr, const std::string&)>(&Entity::addComponent))
         .def("removeComponent", &Entity::removeComponent)
-        .def("loadFromJSON",
+        .def("fromJSON",
             [](Entity& e, const std::string& json)
             {
                 std::stringstream ss(json);
                 cereal::JSONInputArchive ar(ss);
                 e.load(ar);
             })
-        .def("saveToJSON",
+        .def("toJSON",
             [](const Entity& e) -> std::string
             {
                 std::stringstream ss;
@@ -139,14 +139,14 @@ void initCore(py::module_& m)
     py::class_<Component, std::shared_ptr<Component>>(m, "Component")
         .def(py::init<>())
         .def("changed", &Component::changed)
-        .def("loadFromJSON", 
+        .def("fromJSON", 
             [](Component& c, const std::string& json)
             {
                 std::stringstream ss(json);
                 cereal::JSONInputArchive ar(ss);
                 c.loadFromJSON(ar);
             })
-        .def("saveToJSON",
+        .def("toJSON",
             [](Component& c) -> std::string
             {
                 std::stringstream ss;

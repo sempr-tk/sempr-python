@@ -38,12 +38,12 @@ print(f'{entity.id} - {entity.idIsURI}')
 
 # create a component
 c = sempr.Component()
-json = c.saveToJSON()
+json = c.toJSON()
 print(f'{c} : {json}')
 
 # add it to the entity
 entity.addComponent(c, 'foo')
-print(entity.saveToJSON())
+print(entity.toJSON())
 
 
 # add rule for debugging existence of entities
@@ -105,3 +105,8 @@ mat = np.identity(4)
 mat[0:3, 3] = [3, 4, 5]
 a1.transform = mat
 print(f'a1: {a1.transform}')
+print(a1.toJSON())
+
+a2 = sempr.AffineTransform()
+a2.fromJSON(a1.toJSON())
+print(a2.transform)
