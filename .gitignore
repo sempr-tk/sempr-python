@@ -1,0 +1,6 @@
+build
+dist
+.vscode
+semprpy.egg-info
+.env
+testdb
