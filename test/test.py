@@ -81,3 +81,16 @@ for i in range(5):
 print('remove entity')
 core.removeEntity(entity)
 core.performInference()
+
+print(e2.components)
+print([(c, t) for c, t in e2.components if isinstance(c, sempr.Component)])
+
+res = core.componentQuery('SELECT ?e ?num WHERE { ?e <ex:hasNumComps> ?num . }', 'e')
+print(res)
+
+for r in res:
+    sparql, clist = r
+    #print(f'entity: {sparql["e"]}')
+    print(sparql)
+    for c in clist: # type: sempr.ComponentQueryResult
+        print(f'-- {c.component} {c.isInferred} {c.tag}')

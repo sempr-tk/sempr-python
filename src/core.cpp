@@ -35,6 +35,13 @@ PYBIND11_MODULE(semprpy, m)
         .value("RESOURCE", SPARQLQuery::ValueType::RESOURCE)
         .export_values();
 
+    // for component query results
+    py::class_<ComponentQueryResult<Component>>(m, "ComponentQueryResult")
+        .def_readonly("entity", &ComponentQueryResult<Component>::entity)
+        .def_readonly("component", &ComponentQueryResult<Component>::component)
+        .def_readonly("tag", &ComponentQueryResult<Component>::tag)
+        .def_property_readonly("isInferred", &ComponentQueryResult<Component>::isInferred);
+
 
     // sempr::Core
     py::class_<Core>(m, "Core")
@@ -68,6 +75,29 @@ PYBIND11_MODULE(semprpy, m)
                 rdf->soprano().answer(sq);
                 return sq.results;
             })
+        .def("componentQuery",
+            [](Core& core, const std::string& query, const std::string& var)
+            {
+                auto rdf = core.getPlugin<RDFPlugin>();
+                if (!rdf) throw std::runtime_error("RDFPlugin not loaded");
+
+                return rdf->componentQuery(query)
+                    .with<Component>(var).includeInferred(true).aggregate()
+                    .execute();
+            }
+        )
+        .def("componentQuery",
+            [](Core& core, const std::string& query, const std::string& var0, const std::string& var1)
+            {
+                auto rdf = core.getPlugin<RDFPlugin>();
+                if (!rdf) throw std::runtime_error("RDFPlugin not loaded");
+
+                return rdf->componentQuery(query)
+                    .with<Component>(var0).includeInferred(true).aggregate()
+                    .with<Component>(var1).includeInferred(true).aggregate()
+                    .execute();
+            }
+        )
         .def("addRules", &Core::addRules)
         .def("removeRule", &Core::removeRule)
         .def("rules", &Core::rules)
@@ -83,6 +113,7 @@ PYBIND11_MODULE(semprpy, m)
         .def_property_readonly("idIsURI", &Entity::idIsURI)
         .def("setId", &Entity::setId)
         .def("setUri", &Entity::setURI)
+        .def_property_readonly("components", &Entity::getComponentsWithTag<Component>)
         .def("addComponent", static_cast<void(Entity::*)(Component::Ptr)>(&Entity::addComponent))
         .def("addComponent", static_cast<void(Entity::*)(Component::Ptr, const std::string&)>(&Entity::addComponent))
         .def("removeComponent", &Entity::removeComponent)
