@@ -110,3 +110,21 @@ print(a1.toJSON())
 a2 = sempr.AffineTransform()
 a2.fromJSON(a1.toJSON())
 print(a2.transform)
+
+# GeosGeometry
+g1 = sempr.GeosGeometry()
+print(g1.toJSON())
+
+g2 = sempr.GeosGeometry("POINT (1 2 3)")
+print(g2.toJSON())
+
+print(g1.geometry)
+g1.geometry = "POINT (4 5 6)"
+print(g1.geometry)
+
+try:
+    g1.geometry = "PONT (7 8 9)" # intentional typo
+except Exception as e:
+    print(f'got an exception, as expected: {e}')
+
+print(g1)
