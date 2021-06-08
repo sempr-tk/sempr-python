@@ -10,7 +10,7 @@ using namespace sempr;
 void initComponents(py::module_& m)
 {
     // AffineTransform
-    py::class_<AffineTransform, std::shared_ptr<AffineTransform>>(m, "AffineTransform")
+    py::class_<AffineTransform, std::shared_ptr<AffineTransform>, Component>(m, "AffineTransform")
         .def(py::init<>())
         .def(py::init(
             [](const Eigen::Matrix4d& mat)
