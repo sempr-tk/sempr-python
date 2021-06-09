@@ -128,3 +128,16 @@ except Exception as e:
     print(f'got an exception, as expected: {e}')
 
 print(g1)
+
+
+# Triples
+
+t1 = sempr.Triple('<ex:foo>', '<ex:bar>', '<ex:bazzz>')
+print(str(t1))
+
+t1.object = '<ex:baz>'
+print(str(t1))
+
+# 3-tuples can be cast to a triple when needed
+print(f"compare with py tuple:     {t1 == ('<ex:foo>', '<ex:bar>', '<ex:baz>')}")
+print(f"compare with sempr triple: {t1 == sempr.Triple('<ex:foo>', '<ex:bar>', '<ex:baz>')}")

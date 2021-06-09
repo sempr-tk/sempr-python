@@ -1,10 +1,14 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/eigen.h>
+#include <pybind11/operators.h>
 
 #include <sempr/component/AffineTransform.hpp>
 #include <sempr/component/GeosGeometry.hpp>
 #include <geos/geom/Point.h>
+#include <sempr/component/TripleVector.hpp>
+
+#include <stdexcept>
 
 namespace py = pybind11;
 using namespace sempr;
@@ -75,4 +79,38 @@ void initComponents(py::module_& m)
             }
         )
     ;
+
+
+    // Triple
+    py::class_<Triple>(m, "Triple")
+        .def(py::init(
+            [](py::tuple t)
+            {
+                if (t.size() != 3)
+                    throw std::invalid_argument("need subject, predicate, object");
+
+                return std::make_unique<Triple>(py::str(t[0]), py::str(t[1]), py::str(t[2]));
+            }
+        ))
+        .def(py::init<const std::string&, const std::string&, const std::string&>())
+        .def("__str__", &Triple::toString)
+        .def(py::self == py::self)
+        .def_property("subject",
+            [](const Triple& t){ return t.getField(Triple::Field::SUBJECT);},
+            [](Triple& t, const std::string& str){ t.setField(Triple::Field::SUBJECT, str);}
+        )
+        .def_property("predicate",
+            [](const Triple& t){ return t.getField(Triple::Field::PREDICATE);},
+            [](Triple& t, const std::string& str){ t.setField(Triple::Field::PREDICATE, str);}
+        )
+        .def_property("object",
+            [](const Triple& t){ return t.getField(Triple::Field::OBJECT);},
+            [](Triple& t, const std::string& str){ t.setField(Triple::Field::OBJECT, str);}
+        )
+    ;
+
+    py::implicitly_convertible<py::tuple, Triple>();
+
+    // TripleVector
+    //py::class_<TripleVector, std::shared_ptr<TripleVector>, Component>(m, "TripleVector")
 }
