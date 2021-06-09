@@ -165,3 +165,30 @@ tv.add(('a', 'b', 'c'))
 
 showVector(tv)
 
+
+
+# TriplePropertyMap
+m = sempr.TriplePropertyMap()
+m['some_int'] = 42
+m['some_float'] = 3.14159265
+m['some_string'] = 'Hello, World!'
+m['some_resource'] = 'ex:foo', True
+
+for key in m:
+    print(f'm[{key+"]":15s} ({str(m.typeAt(key))+")":20s} {m[key]}')
+
+try:
+    print(m["foo"])
+except Exception as e:
+    print(f'exception, as expected: {repr(e)}')
+
+print('incomplete triples, as there is no entity assigned yet:')
+for t in m.iter_triples():
+    print(str(t))
+
+# add it to an entity
+entity.addComponent(m)
+
+print('after adding it to an entity:')
+for t in m.iter_triples():
+    print(str(t))

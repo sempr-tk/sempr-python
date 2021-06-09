@@ -68,7 +68,9 @@ Outputs something along the lines:
  2 : updateSoprano
  4 : inferRules
  5 : <unnamed rule>
- 6 : <unnamed rule>   
-a: sempr:Entity_0       b: ex:blub   
-a: ex:foo               b: ex:baz    
+ 6 : <unnamed rule>
+a: sempr:Entity_0       b: ex:blub
+a: ex:foo               b: ex:baz
 ```
+
+Also, take a look at `test/test.py`, where I test stuff during development.

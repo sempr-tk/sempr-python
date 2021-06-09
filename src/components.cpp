@@ -7,6 +7,7 @@
 #include <sempr/component/GeosGeometry.hpp>
 #include <geos/geom/Point.h>
 #include <sempr/component/TripleVector.hpp>
+#include <sempr/component/TriplePropertyMap.hpp>
 
 #include <stdexcept>
 
@@ -135,5 +136,85 @@ void initComponents(py::module_& m)
         .def("add", &TripleVector::addTriple)
         .def("remove", &TripleVector::removeTriple)
         .def("clear", &TripleVector::clear)
+    ;
+
+
+    // type enum for TriplePropertyMap
+    py::enum_<TriplePropertyMapEntry::Type>(m, "ValueType")
+        .value("INVALID", TriplePropertyMapEntry::INVALID)
+        .value("RESOURCE", TriplePropertyMapEntry::RESOURCE)
+        .value("STRING", TriplePropertyMapEntry::STRING)
+        .value("FLOAT", TriplePropertyMapEntry::FLOAT)
+        .value("INT", TriplePropertyMapEntry::INT)
+        .export_values()
+    ;
+
+    // TriplePropertyMap
+    py::class_<TriplePropertyMap, std::shared_ptr<TriplePropertyMap>, Component>(m, "TriplePropertyMap")
+        .def(py::init<>())
+        .def("__getitem__",
+            [](TriplePropertyMap& m, const std::string& key) -> py::object
+            {
+                auto& entry = m.map_.at(key);
+
+                switch (entry.type()) {
+                    case TriplePropertyMapEntry::RESOURCE:
+                    case TriplePropertyMapEntry::STRING:
+                        return py::str(entry);
+                    case TriplePropertyMapEntry::FLOAT:
+                        return py::float_(entry);
+                    case TriplePropertyMapEntry::INT:
+                        return py::int_(static_cast<int>(entry));
+                    case TriplePropertyMapEntry::INVALID:
+                        break;
+                }
+
+                throw std::invalid_argument("no entry with key '" + key + "'");
+            }
+        )
+        .def("__setitem__",
+            [](TriplePropertyMap& m, const std::string& key, int val)
+            {
+                m.map_[key] = val;
+            }
+        )
+        .def("__setitem__",
+            [](TriplePropertyMap& m, const std::string& key, float val)
+            {
+                m.map_[key] = val;
+            }
+        )
+        .def("__setitem__",
+            [](TriplePropertyMap& m, const std::string& key, const std::pair<std::string, bool>& val)
+            {
+                m.map_[key] = { val.first, val.second };
+            }
+        )
+        .def("__setitem__",
+            [](TriplePropertyMap& m, const std::string& key, const std::string& val)
+            {
+                m.map_[key] = val;
+            }
+        )
+        .def("__iter__",
+            [](TriplePropertyMap& m)
+            {
+                return py::make_key_iterator(m.map_.begin(), m.map_.end());
+            },
+            py::keep_alive<0, 1>()
+        )
+        .def("iter_triples",
+            [](TriplePropertyMap& m)
+            {
+                return py::make_iterator(m.begin(), m.end());
+            },
+            py::keep_alive<0, 1>()
+        )
+        .def("typeAt",
+            [](TriplePropertyMap& m, const std::string& key)
+            {
+                return m.map_[key].type();
+            }
+        )
     ;
 }
