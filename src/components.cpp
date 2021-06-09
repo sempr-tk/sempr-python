@@ -112,5 +112,28 @@ void initComponents(py::module_& m)
     py::implicitly_convertible<py::tuple, Triple>();
 
     // TripleVector
-    //py::class_<TripleVector, std::shared_ptr<TripleVector>, Component>(m, "TripleVector")
+    py::class_<TripleVector, std::shared_ptr<TripleVector>, Component>(m, "TripleVector")
+        .def(py::init<>())
+        .def("triples",
+            [](const TripleVector& tv)
+            {
+                std::vector<Triple> l;
+                tv.getTriples(l);
+                return l;
+            }
+        )
+        .def("__getitem__", &TripleVector::getTripleAt)
+        .def("__delitem__", &TripleVector::removeTripleAt)
+        .def("__len__", &TripleVector::size)
+        .def("__iter__",
+            [](const TripleVector& v)
+            {
+                return py::make_iterator(v.begin(), v.end());
+            },
+            py::keep_alive<0, 1>()
+        )
+        .def("add", &TripleVector::addTriple)
+        .def("remove", &TripleVector::removeTriple)
+        .def("clear", &TripleVector::clear)
+    ;
 }

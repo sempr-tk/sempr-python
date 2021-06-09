@@ -131,7 +131,6 @@ print(g1)
 
 
 # Triples
-
 t1 = sempr.Triple('<ex:foo>', '<ex:bar>', '<ex:bazzz>')
 print(str(t1))
 
@@ -141,3 +140,28 @@ print(str(t1))
 # 3-tuples can be cast to a triple when needed
 print(f"compare with py tuple:     {t1 == ('<ex:foo>', '<ex:bar>', '<ex:baz>')}")
 print(f"compare with sempr triple: {t1 == sempr.Triple('<ex:foo>', '<ex:bar>', '<ex:baz>')}")
+
+
+# TripleVector
+tv = sempr.TripleVector()
+for i in range(5):
+    tv.add(('<ex:foo>', '<ex:bar>', f'<ex:baz_{i}>'))
+
+def showVector(tv : sempr.TripleVector):
+    print(len(tv))
+    for t in tv:
+        print(str(t))
+
+
+showVector(tv)
+print(f'1: {tv[1]}')
+
+del tv[1]
+
+showVector(tv)
+
+tv.remove(('<ex:foo>', '<ex:bar>', '<ex:baz_3>'))
+tv.add(('a', 'b', 'c'))
+
+showVector(tv)
+
