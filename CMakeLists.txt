@@ -21,6 +21,7 @@ pybind11_add_module(
     src/module.cpp
     src/core.cpp
     src/components.cpp
+    src/rete.cpp
 )
 
 target_link_libraries(semprpy PUBLIC ${sempr_LIBRARIES} ${SEMPR_RDF})

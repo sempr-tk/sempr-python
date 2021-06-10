@@ -4,6 +4,7 @@
 #include <sempr/Core.hpp>
 #include <sempr/plugins/RDFPlugin.hpp>
 #include <sempr/SeparateFileStorage.hpp>
+#include <sempr/RDF.hpp>
 
 namespace py = pybind11;
 using namespace sempr;
@@ -16,6 +17,51 @@ void initCore(py::module_& m)
     options.show_user_defined_docstrings();
 
     m.doc() = "Basic python bindings for sempr";
+
+    // URI definitions/constants
+    m.def("baseURI", &sempr::baseURI);
+
+    m.def_submodule("rdf")
+        .def("baseURI", &rdf::baseURI)
+        .def("type", &rdf::type);
+
+    m.def_submodule("rdfs")
+        .def("baseURI", &rdfs::baseURI)
+        .def("Resource", &rdfs::Resource)
+        .def("Class", &rdfs::Class)
+        .def("subClassOf", &rdfs::subClassOf)
+        .def("subPropertyOf", &rdfs::subPropertyOf)
+        .def("domain", &rdfs::domain)
+        .def("range", &rdfs::range);
+
+    m.def_submodule("owl")
+        .def("baseURI", &owl::baseURI)
+        .def("Class", &owl::Class)
+        .def("FunctionalProperty", &owl::FunctionalProperty)
+        .def("Nothing", &owl::Nothing)
+        .def("ObjectProperty", &owl::ObjectProperty)
+        .def("Restriction", &owl::Restriction)
+        .def("Thing", &owl::Thing)
+        .def("allValuesFrom", &owl::allValuesFrom)
+        .def("cardinality", &owl::cardinality)
+        .def("differentFrom", &owl::differentFrom)
+        .def("disjointWith", &owl::disjointWith)
+        .def("distinctMembers", &owl::distinctMembers)
+        .def("equivalentClass", &owl::equivalentClass)
+        .def("equivalentProperty", &owl::equivalentProperty)
+        .def("hasValue", &owl::hasValue)
+        .def("intersectionOf", &owl::intersectionOf)
+        .def("inverseOf", &owl::inverseOf)
+        .def("maxCardinality", &owl::maxCardinality)
+        .def("minCardinality", &owl::minCardinality)
+        .def("onClass", &owl::onClass)
+        .def("onDataRange", &owl::onDataRange)
+        .def("onDatatype", &owl::onDatatype)
+        .def("oneOf", &owl::oneOf)
+        .def("onProperty", &owl::onProperty)
+        .def("sameAs", &owl::sameAs)
+        .def("someValuesFrom", &owl::someValuesFrom)
+        .def("unionOf", &owl::unionOf);
 
     // rete::ParsedRule
     py::class_<rete::ParsedRule, std::shared_ptr<rete::ParsedRule>>(m, "ParsedRule")
@@ -63,7 +109,7 @@ void initCore(py::module_& m)
                 "persistence module pointing to the given path."
         )
         .def("loadPlugins", py::overload_cast<>(&Core::loadPlugins))
-        .def("query", 
+        .def("query",
             [](Core& core, const std::string& query)
             {
                 auto rdf = core.getPlugin<RDFPlugin>();
@@ -103,7 +149,9 @@ void initCore(py::module_& m)
         .def("rules", &Core::rules)
         .def("performInference", &Core::performInference)
         .def("addEntity", &Core::addEntity)
-        .def("removeEntity", &Core::removeEntity);
+        .def("removeEntity", &Core::removeEntity)
+        .def_property_readonly("reasoner", &Core::reasoner)
+        ;
 
     // sempr::Entity
     py::class_<Entity, std::shared_ptr<Entity>>(m, "Entity")
@@ -139,7 +187,7 @@ void initCore(py::module_& m)
     py::class_<Component, std::shared_ptr<Component>>(m, "Component")
         .def(py::init<>())
         .def("changed", &Component::changed)
-        .def("fromJSON", 
+        .def("fromJSON",
             [](Component& c, const std::string& json)
             {
                 std::stringstream ss(json);

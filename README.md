@@ -1,8 +1,8 @@
 # sempr-python
 
 This project provides a small python wrapper for sempr. Be aware that is not
-feature-complete, and the usage might differ from the c++ version of sempr in
-some (though minor) cases.
+feature-complete, and its usage is in many aspects different from the C++
+version. What did you expect? This is python! :wink:
 
 ## Installation
 
