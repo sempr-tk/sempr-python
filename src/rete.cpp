@@ -4,6 +4,7 @@
 
 #include <rete-core/WME.hpp>
 #include <rete-core/Token.hpp>
+#include <rete-rdf/Triple.hpp>
 
 #include <rete-reasoner/Reasoner.hpp>
 #include <rete-reasoner/RuleParser.hpp>
@@ -42,6 +43,32 @@ void initRete(py::module_& m)
         .def_property_readonly("type", &WME::type)
         .def("__lt__", [](const WME& self, const WME& other) { return self < other; })
         .def("__eq__", [](const WME& self, const WME& other) { return self == other; })
+    ;
+
+    // rete Triple (!= sempr Triple)
+    py::enum_<Triple::Field>(m, "Field")
+        .value("SUBJECT", Triple::Field::SUBJECT)
+        .value("PREDICATE", Triple::Field::PREDICATE)
+        .value("OBJECT", Triple::Field::OBJECT)
+        .export_values()
+    ;
+
+    py::class_<Triple, std::shared_ptr<Triple>, WME>(m, "Triple")
+        .def(py::init<const std::string&, const std::string&, const std::string&>())
+        .def_readonly("subject", &Triple::subject)
+        .def_readonly("predicate", &Triple::predicate)
+        .def_readonly("object", &Triple::object)
+        .def("getField", &Triple::getField)
+        .def_static("fieldName", &Triple::fieldName)
+        .def("__getitem__",
+            [](const Triple& t, size_t index)
+            {
+                if (index == 0) return t.subject;
+                if (index == 1) return t.predicate;
+                if (index == 2) return t.object;
+                throw py::index_error();
+            }
+        )
     ;
 
     // Token
@@ -140,5 +167,13 @@ void initRete(py::module_& m)
         .def("removeEvidence", py::overload_cast<Evidence::Ptr>(&Reasoner::removeEvidence))
         .def_property_readonly("network", py::overload_cast<>(&Reasoner::net))
         .def_property_readonly("inferenceState", &Reasoner::getCurrentState)
+        .def("explainAsDOT",
+            [](Reasoner& self, WME::Ptr toExplain)
+            {
+                ExplanationToDotVisitor visitor;
+                self.getCurrentState().traverseExplanation(toExplain, visitor);
+                return visitor.str();
+            }
+        )
     ;
 }

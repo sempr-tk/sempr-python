@@ -16,6 +16,31 @@ using namespace sempr;
 
 void initComponents(py::module_& m)
 {
+    // sempr::Component
+    py::class_<Component, std::shared_ptr<Component>>(m, "Component")
+        .def(py::init<>())
+        .def("changed", &Component::changed)
+        .def("fromJSON",
+            [](Component& c, const std::string& json)
+            {
+                std::stringstream ss(json);
+                cereal::JSONInputArchive ar(ss);
+                c.loadFromJSON(ar);
+            }
+        )
+        .def("toJSON",
+            [](Component& c) -> std::string
+            {
+                std::stringstream ss;
+                {
+                    cereal::JSONOutputArchive ar(ss);
+                    c.saveToJSON(ar);
+                }
+                return ss.str();
+            }
+        )
+    ;
+
     // AffineTransform
     py::class_<AffineTransform, std::shared_ptr<AffineTransform>, Component>(m, "AffineTransform")
         .def(py::init<>())
@@ -107,6 +132,24 @@ void initComponents(py::module_& m)
         .def_property("object",
             [](const Triple& t){ return t.getField(Triple::Field::OBJECT);},
             [](Triple& t, const std::string& str){ t.setField(Triple::Field::OBJECT, str);}
+        )
+        .def("__getitem__",
+            [](const Triple& t, size_t index)
+            {
+                if (index == 0) return t.getField(Triple::Field::SUBJECT);
+                if (index == 1) return t.getField(Triple::Field::PREDICATE);
+                if (index == 2) return t.getField(Triple::Field::OBJECT);
+                throw py::index_error();
+            }
+        )
+        .def("__setitem__",
+            [](Triple& t, size_t index, const std::string& value)
+            {
+                if (index == 0) t.setField(Triple::Field::SUBJECT, value);
+                if (index == 1) t.setField(Triple::Field::PREDICATE, value);
+                if (index == 2) t.setField(Triple::Field::OBJECT, value);
+                throw py::index_error();
+            }
         )
     ;
 

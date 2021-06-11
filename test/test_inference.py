@@ -52,19 +52,32 @@ core.performInference()
 
 q = f'SELECT * WHERE {{ sempr:{e1.id} rdf:type ?t. }}'
 print(q)
-for r in core.query(q):
+result = core.query(q)
+for r in result:
     l = [(k, *r[k]) for k in r]
     print(l)
 
-# you can actually subclass the ExplanationVisitor...
+# explain the first result!
+#              <entity URI>      expanded rdf:type            <?t>
+toExplain = (f'<sempr:{e1.id}>',     rdf.type(),      f'<{result[0]["t"][1]}>')
+print(toExplain)
+# uses a shortcut, but internally also accesses the reasoners inference state
+# with an ExplanationToDotVisitor, as shown below
+print(core.explainAsDOT(toExplain))
+
+
+# you can even subclass the ExplanationVisitor...
 # be aware that this is usually not the case, and special preparations
 # were necessary on the C++ side to enable this!
 class MyVisitor(sempr.rete.ExplanationVisitor):
     def __init__(self):
         sempr.rete.ExplanationVisitor.__init__(self)
         print('init MyVisitor')
+        self.log = []
 
     def visit(self, sth, depth):
+        self.log.append(sth)
+
         if isinstance(sth, sempr.rete.WMESupportedBy):
             for e in sth.evidences:
                 print(f'{sth.wme} supported by: ({e})')
@@ -78,9 +91,11 @@ wmes = state.getWMEs()
 v = MyVisitor()
 state.traverseExplanation(wmes[2], v)
 
+print(v.log)
+
 v = sempr.rete.ExplanationToDotVisitor()
 state.traverseExplanation(wmes[2], v)
 
-print(v.dot())
+#print(v.dot())
 with open('test.dot', 'w+') as f:
     f.write(v.dot())

@@ -5,6 +5,8 @@
 #include <sempr/plugins/RDFPlugin.hpp>
 #include <sempr/SeparateFileStorage.hpp>
 #include <sempr/RDF.hpp>
+#include <sempr/component/TripleContainer.hpp>
+#include <rete-reasoner/ExplanationToDotVisitor.hpp>
 
 namespace py = pybind11;
 using namespace sempr;
@@ -151,6 +153,22 @@ void initCore(py::module_& m)
         .def("addEntity", &Core::addEntity)
         .def("removeEntity", &Core::removeEntity)
         .def_property_readonly("reasoner", &Core::reasoner)
+        .def("explainAsDOT",
+            [](Core& self, const Triple& t)
+            {
+                rete::ExplanationToDotVisitor visitor;
+                auto toExplain = std::make_shared<rete::Triple>(
+                        t.getField(Triple::Field::SUBJECT),
+                        t.getField(Triple::Field::PREDICATE),
+                        t.getField(Triple::Field::OBJECT)
+                );
+
+                self.reasoner()
+                    .getCurrentState()
+                    .traverseExplanation(toExplain, visitor);
+                return visitor.str();
+            }
+        )
         ;
 
     // sempr::Entity
@@ -171,7 +189,8 @@ void initCore(py::module_& m)
                 std::stringstream ss(json);
                 cereal::JSONInputArchive ar(ss);
                 e.load(ar);
-            })
+            }
+        )
         .def("toJSON",
             [](const Entity& e) -> std::string
             {
@@ -181,27 +200,30 @@ void initCore(py::module_& m)
                     e.save(ar);
                 }
                 return ss.str();
-            });
+            }
+        )
+    ;
 
-    // sempr::Component
-    py::class_<Component, std::shared_ptr<Component>>(m, "Component")
-        .def(py::init<>())
-        .def("changed", &Component::changed)
-        .def("fromJSON",
-            [](Component& c, const std::string& json)
+
+    // ECWME
+    py::class_<ECWME, std::shared_ptr<ECWME>, rete::WME>(m, "ECWME")
+        .def_property_readonly("entity",
+            [](const ECWME& self)
             {
-                std::stringstream ss(json);
-                cereal::JSONInputArchive ar(ss);
-                c.loadFromJSON(ar);
-            })
-        .def("toJSON",
-            [](Component& c) -> std::string
+                return std::get<0>(self.value_);
+            }
+        )
+        .def_property_readonly("component",
+            [](const ECWME& self)
             {
-                std::stringstream ss;
-                {
-                    cereal::JSONOutputArchive ar(ss);
-                    c.saveToJSON(ar);
-                }
-                return ss.str();
-            });
+                return std::get<1>(self.value_);
+            }
+        )
+        .def_property_readonly("tag",
+            [](const ECWME& self)
+            {
+                return std::get<2>(self.value_);
+            }
+        )
+    ;
 }

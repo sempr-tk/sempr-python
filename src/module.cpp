@@ -12,6 +12,6 @@ PYBIND11_MODULE(semprpy, m)
     auto rete = m.def_submodule("rete");
     initRete(rete);
 
-    initCore(m);
     initComponents(m);
+    initCore(m);
 }
