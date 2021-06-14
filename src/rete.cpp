@@ -36,6 +36,12 @@ public:
 
 void initRete(py::module_& m)
 {
+    py::enum_<PropagationFlag>(m, "PropagationFlag")
+        .value("ASSERT", PropagationFlag::ASSERT)
+        .value("RETRACT", PropagationFlag::RETRACT)
+        .value("UPDATE", PropagationFlag::UPDATE)
+        .export_values();
+
     // WME
     py::class_<WME, std::shared_ptr<WME>>(m, "WME")
         .def_property_readonly("isComputed", &WME::isComputed)

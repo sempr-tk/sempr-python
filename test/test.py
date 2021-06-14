@@ -192,3 +192,15 @@ entity.addComponent(m)
 print('after adding it to an entity:')
 for t in m.iter_triples():
     print(str(t))
+
+
+# custom callbacks
+def myFancyCallback(flag : sempr.rete.PropagationFlag, val1 : str):
+    print(f"Woohoo! Python callback! {flag} -- {val1}")
+
+
+core.registerCallbackEffect(myFancyCallback, "myCB")
+core.addRules(
+    '[testCB: EC<Component>(?e ?c), GROUP BY (?e) -> myCB(?e)]'
+)
+core.performInference()

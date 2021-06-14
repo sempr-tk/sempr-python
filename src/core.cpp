@@ -1,5 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/functional.h>
+#include <pybind11/embed.h>
 
 #include <sempr/Core.hpp>
 #include <sempr/plugins/RDFPlugin.hpp>
@@ -7,9 +9,26 @@
 #include <sempr/RDF.hpp>
 #include <sempr/component/TripleContainer.hpp>
 #include <rete-reasoner/ExplanationToDotVisitor.hpp>
+#include <rete-reasoner/RuleParser.hpp>
+#include <rete-reasoner/CallbackEffectBuilder.hpp>
 
 namespace py = pybind11;
 using namespace sempr;
+
+
+// helper for makeCallbackEffect
+template <typename... Ts>
+using callback_t = std::function<void(rete::PropagationFlag, Ts...)>;
+
+template <typename... Ts>
+callback_t<Ts...> makeCallback(py::function pycb)
+{
+    return [pycb](rete::PropagationFlag flag, Ts... args)
+    {
+        return pycb(flag, args...);
+    };
+}
+
 
 void initCore(py::module_& m)
 {
@@ -167,6 +186,45 @@ void initCore(py::module_& m)
                     .getCurrentState()
                     .traverseExplanation(toExplain, visitor);
                 return visitor.str();
+            }
+        )
+        .def("registerCallbackEffect",
+            [](Core& self, py::function pycb, const std::string& name)
+            {
+                py::module inspect_module = py::module::import("inspect");
+                py::object result = inspect_module.attr("signature")(pycb).attr("parameters");
+                auto num_params = py::len(result);
+
+                std::cout << "inspect py func -> " << num_params << std::endl;
+
+                if (num_params == 1)
+                {
+                    self.parser().registerNodeBuilder(
+                        rete::makeCallbackBuilder(name,
+                            makeCallback<>(pycb)
+                        )
+                    );
+                }
+                else if (num_params == 2)
+                {
+                    self.parser().registerNodeBuilder(
+                        rete::makeCallbackBuilder(name,
+                            makeCallback<std::string>(pycb)
+                        )
+                    );
+                }
+                else if (num_params == 3)
+                {
+                    self.parser().registerNodeBuilder(
+                        rete::makeCallbackBuilder(name,
+                            makeCallback<std::string, std::string>(pycb)
+                        )
+                    );
+                }
+                else
+                {
+                    throw py::type_error("Callbacks with more than 3 arguments are not supported.");
+                }
             }
         )
         ;
