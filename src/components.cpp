@@ -200,19 +200,29 @@ void initComponents(py::module_& m)
             {
                 auto& entry = m.map_.at(key);
 
+                py::object val;
                 switch (entry.type()) {
                     case TriplePropertyMapEntry::RESOURCE:
                     case TriplePropertyMapEntry::STRING:
-                        return py::str(entry);
-                    case TriplePropertyMapEntry::FLOAT:
-                        return py::float_(entry);
-                    case TriplePropertyMapEntry::INT:
-                        return py::int_(static_cast<int>(entry));
-                    case TriplePropertyMapEntry::INVALID:
+                        val = py::str(entry);
                         break;
+                    case TriplePropertyMapEntry::FLOAT:
+                        val = py::float_(entry);
+                        break;
+                    case TriplePropertyMapEntry::INT:
+                        val = py::int_(static_cast<int>(entry));
+                        break;
+                    case TriplePropertyMapEntry::INVALID:
+                        throw std::invalid_argument("no entry with key '" + key + "'");
                 }
 
-                throw std::invalid_argument("no entry with key '" + key + "'");
+                return py::make_tuple(val, entry.type());
+            }
+        )
+        .def("__delitem__",
+            [](TriplePropertyMap& m, const std::string& key)
+            {
+                m.map_.erase(key);
             }
         )
         .def("__setitem__",
