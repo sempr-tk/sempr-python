@@ -27,6 +27,32 @@ python setup.py install
 
 Now you are good to go!
 
+But wait, there is more: Out of the box, many python IDEs do not support code
+completion and the like for binary modules. I'm using vscode with pylance and
+struggled a bit to get it all working, so here is what worked for me in the end:
+
+After having installed semprpy, you will need to create stubs for semprpy
+anywhere on your system (does not need to happen inside the semprpy repository).
+There are several different methods out there to do this, but what worked
+easiest for me was using mypy:
+
+```
+pip install mypy
+```
+
+This includes a script called `stubgen` which we can use to create stubs for
+any module, package or source file. In this case, we use it to create stubs for
+the whole semprpy-_package_:
+
+```
+stubgen -p semprpy
+```
+This creates a folder `out/semprpy` with your stub files. You can use these in
+vscode with pylance by adding the path to the `out` folder to the
+`Python > Analysis: Extra Paths`. For me, this looks like this:
+[extrapaths](img/pylance_extra_paths.png)
+
+
 ## Usage
 
 The created python extension is called `semprpy`.
