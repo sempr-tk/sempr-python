@@ -196,7 +196,7 @@ void initComponents(py::module_& m)
     py::class_<TriplePropertyMap, std::shared_ptr<TriplePropertyMap>, Component>(m, "TriplePropertyMap")
         .def(py::init<>())
         .def("__getitem__",
-            [](TriplePropertyMap& m, const std::string& key) -> py::object
+            [](TriplePropertyMap& m, const std::string& key)
             {
                 auto& entry = m.map_.at(key);
 
