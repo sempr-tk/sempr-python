@@ -93,6 +93,38 @@ void initCore(py::module_& m)
         .def_property_readonly("ruleString", &rete::ParsedRule::ruleString, "The string from which the rule was parsed")
         .doc() = "Testdoc!";
 
+    // sempr::Entity
+    py::class_<Entity, std::shared_ptr<Entity>>(m, "Entity")
+        //.def_static("create", &Entity::create)
+        .def(py::init(&Entity::create))
+        .def_property_readonly("id", &Entity::id)
+        .def_property_readonly("idIsURI", &Entity::idIsURI)
+        .def("setId", &Entity::setId)
+        .def("setUri", &Entity::setURI)
+        .def_property_readonly("components", &Entity::getComponentsWithTag<Component>)
+        .def("addComponent", static_cast<void(Entity::*)(Component::Ptr)>(&Entity::addComponent))
+        .def("addComponent", static_cast<void(Entity::*)(Component::Ptr, const std::string&)>(&Entity::addComponent))
+        .def("removeComponent", &Entity::removeComponent)
+        .def("fromJSON",
+            [](Entity& e, const std::string& json)
+            {
+                std::stringstream ss(json);
+                cereal::JSONInputArchive ar(ss);
+                e.load(ar);
+            }
+        )
+        .def("toJSON",
+            [](const Entity& e) -> std::string
+            {
+                std::stringstream ss;
+                {
+                    cereal::JSONOutputArchive ar(ss);
+                    e.save(ar);
+                }
+                return ss.str();
+            }
+        )
+    ;
 
     // SPARQLQuery result types
     py::class_<SPARQLQuery> sq(m, "SPARQLQuery");
@@ -228,40 +260,6 @@ void initCore(py::module_& m)
             }
         )
         ;
-
-    // sempr::Entity
-    py::class_<Entity, std::shared_ptr<Entity>>(m, "Entity")
-        //.def_static("create", &Entity::create)
-        .def(py::init(&Entity::create))
-        .def_property_readonly("id", &Entity::id)
-        .def_property_readonly("idIsURI", &Entity::idIsURI)
-        .def("setId", &Entity::setId)
-        .def("setUri", &Entity::setURI)
-        .def_property_readonly("components", &Entity::getComponentsWithTag<Component>)
-        .def("addComponent", static_cast<void(Entity::*)(Component::Ptr)>(&Entity::addComponent))
-        .def("addComponent", static_cast<void(Entity::*)(Component::Ptr, const std::string&)>(&Entity::addComponent))
-        .def("removeComponent", &Entity::removeComponent)
-        .def("fromJSON",
-            [](Entity& e, const std::string& json)
-            {
-                std::stringstream ss(json);
-                cereal::JSONInputArchive ar(ss);
-                e.load(ar);
-            }
-        )
-        .def("toJSON",
-            [](const Entity& e) -> std::string
-            {
-                std::stringstream ss;
-                {
-                    cereal::JSONOutputArchive ar(ss);
-                    e.save(ar);
-                }
-                return ss.str();
-            }
-        )
-    ;
-
 
     // ECWME
     py::class_<ECWME, std::shared_ptr<ECWME>, rete::WME>(m, "ECWME")
