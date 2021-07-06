@@ -21,7 +21,7 @@ template <typename... Ts>
 using callback_t = std::function<void(rete::PropagationFlag, Ts...)>;
 
 template <typename... Ts>
-callback_t<Ts...> makeCallback(py::function pycb)
+callback_t<Ts...> makeCallback(py::object pycb)
 {
     return [pycb](rete::PropagationFlag flag, Ts... args)
     {
@@ -221,7 +221,7 @@ void initCore(py::module_& m)
             }
         )
         .def("registerCallbackEffect",
-            [](Core& self, py::function pycb, const std::string& name)
+            [](Core& self, py::object pycb, const std::string& name)
             {
                 py::module inspect_module = py::module::import("inspect");
                 py::object result = inspect_module.attr("signature")(pycb).attr("parameters");

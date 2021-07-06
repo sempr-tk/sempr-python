@@ -1,4 +1,6 @@
 import semprpy as sempr
+from semprpy import rete # only used to make pylance shut up
+
 from typing import List
 
 import pprint
@@ -11,8 +13,8 @@ core = sempr.Core('testdb')
 core.loadPlugins()
 
 # add a rule
-rules = core.addRules("[true() -> (<a> <b> <c>)]")
-print(rules)
+rulesIds = core.addRules("[true() -> (<a> <b> <c>)]")
+print(rulesIds)
 
 # list rules
 print('rules:')
@@ -145,7 +147,7 @@ print(f"compare with sempr triple: {t1 == sempr.Triple('<ex:foo>', '<ex:bar>', '
 # TripleVector
 tv = sempr.TripleVector()
 for i in range(5):
-    tv.add(('<ex:foo>', '<ex:bar>', f'<ex:baz_{i}>'))
+    tv.add(sempr.Triple('<ex:foo>', '<ex:bar>', f'<ex:baz_{i}>'))
 
 def showVector(tv : sempr.TripleVector):
     print(len(tv))
@@ -160,8 +162,8 @@ del tv[1]
 
 showVector(tv)
 
-tv.remove(('<ex:foo>', '<ex:bar>', '<ex:baz_3>'))
-tv.add(('a', 'b', 'c'))
+tv.remove(sempr.Triple('<ex:foo>', '<ex:bar>', '<ex:baz_3>'))
+tv.add(sempr.Triple('a', 'b', 'c'))
 
 showVector(tv)
 
@@ -195,7 +197,7 @@ for t in m.iter_triples():
 
 
 # custom callbacks
-def myFancyCallback(flag : sempr.rete.PropagationFlag, val1 : str):
+def myFancyCallback(flag : rete.PropagationFlag, val1 : str):
     print(f"Woohoo! Python callback! {flag} -- {val1}")
 
 
