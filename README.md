@@ -27,14 +27,44 @@ python setup.py install
 
 Now you are good to go!
 
-But wait, there is more: Out of the box, many python IDEs do not support code
+**But wait, there is more:** Out of the box, many python IDEs do not support code
 completion and the like for binary modules. I'm using vscode with pylance and
 struggled a bit to get it all working, so here is what worked for me in the end:
 
 After having installed semprpy, you will need to create stubs for semprpy
 anywhere on your system (does not need to happen inside the semprpy repository).
-There are several different methods out there to do this, but what worked
-easiest for me was using mypy:
+There are several different methods out there to do this, and what worked in the
+end for me was using either `mypy` or `pybind11-stubgen`.
+
+> _**Note**: I struggled a lot to get it all working, but as usual, it is quite
+  simple if you know how. I first got it working with mypy, but noticed that
+  it did not export any documentation, only the signatures. Hence, I gave
+  pybind11-stubgen another try, and that works just fine now! (The only remaining
+  problem being that I did not include much documentation in the python
+  bindings, yet... but that is something else.)_
+
+### With `pybind11-stubgen`
+
+The preferred way right now is to use `pybind11-stubgen`, as it was specifically
+made to generate stubs from C-extension-modules created with pybind11. It
+properly includes documentation and signatures in the stubs.
+
+> _**Note**: pybind11-stubgen is being moved into mypy, but at the time of
+  writing this, it still outperforms mypy._
+
+```
+pip install pybind11-stubgen
+pybind11-stubgen semprpy
+```
+
+This creates a folder `./stubs` which you can add to your IDE as a location for
+stub files. In vscode with pylance, this looks like this for me:
+![stubpath](img/pylance_stub_path.png)
+
+### With `mypy`
+
+As already mentioned, pybind11-stubgen should give better results. But if you
+have any trouble with that, you can also use mypy:
 
 ```
 pip install mypy
@@ -50,7 +80,7 @@ stubgen -p semprpy
 This creates a folder `out/semprpy` with your stub files. You can use these in
 vscode with pylance by adding the path to the `out` folder to the
 `Python > Analysis: Extra Paths`. For me, this looks like this:
-[extrapaths](img/pylance_extra_paths.png)
+![extrapaths](img/pylance_extra_settings.png)
 
 
 ## Usage
