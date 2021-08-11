@@ -1,6 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/operators.h>
+#include <pybind11/stl_bind.h>
 
 #include <rete-core/WME.hpp>
 #include <rete-core/Token.hpp>
@@ -9,6 +10,14 @@
 #include <rete-reasoner/Reasoner.hpp>
 #include <rete-reasoner/RuleParser.hpp>
 #include <rete-reasoner/ExplanationToDotVisitor.hpp>
+#include <rete-reasoner/ExplanationToJSONVisitor.hpp>
+#include <rete-reasoner/WMEToJSONConverter.hpp>
+
+#include <sempr/ECWMEToJSONConverter.hpp>
+#include <sempr/TupleWMEToJSONConverter.hpp>
+#include <sempr/TupleGeoToJSONConverter.hpp>
+
+#include "external/pybind11_json.hpp"
 
 
 namespace py = pybind11;
@@ -25,6 +34,12 @@ public:
 
     /** Process WMEs */
     void visit(WME::Ptr wme, size_t depth) override { PYBIND11_OVERRIDE_PURE(void, ExplanationVisitor, visit, wme, depth); }
+
+    /** Optional: Process TokenGroups */
+    bool wantsTokenGroups() const override { PYBIND11_OVERRIDE(bool, ExplanationVisitor, wantsTokenGroups); }
+    void visit(TokenGroup::Ptr tg) override { PYBIND11_OVERRIDE(void, ExplanationVisitor, visit, tg); }
+    void visit(TokenGroup::Ptr tg, Token::Ptr t) override { PYBIND11_OVERRIDE(void, ExplanationVisitor, visit, tg, t); }
+    void visit(TokenGroup::Ptr tg, Token::Ptr t, WME::Ptr w) override { PYBIND11_OVERRIDE(void, ExplanationVisitor, visit, tg, t, w); }
 
     /** Process Evidences */
     void visit(Evidence::Ptr ev, size_t depth) override { PYBIND11_OVERRIDE_PURE(void, ExplanationVisitor, visit, ev, depth); }
@@ -85,6 +100,12 @@ void initRete(py::module_& m)
         .def("__str__", &Token::toString)
     ;
 
+    // TokenGroup
+    py::class_<TokenGroup, std::shared_ptr<TokenGroup>, WME>(m, "TokenGroup")
+        .def(py::init<>())
+        .def_readonly("tokens", &TokenGroup::token_)
+    ;
+
     // Production
     py::class_<Production, std::shared_ptr<Production>>(m, "Production")
         .def_property_readonly("priority", &Production::getPriority)
@@ -119,8 +140,12 @@ void initRete(py::module_& m)
     // ExplanationVisitor
     py::class_<ExplanationVisitor, PyExplanationVisitor>(m, "ExplanationVisitor")
         .def(py::init<>())
+        .def("wantsTokenGroups", &ExplanationVisitor::wantsTokenGroups)
         .def("visit", py::overload_cast<WMESupportedBy&, size_t>(&ExplanationVisitor::visit))
         .def("visit", py::overload_cast<WME::Ptr, size_t>(&ExplanationVisitor::visit))
+        .def("visit", py::overload_cast<TokenGroup::Ptr>(&ExplanationVisitor::visit))
+        .def("visit", py::overload_cast<TokenGroup::Ptr, Token::Ptr>(&ExplanationVisitor::visit))
+        .def("visit", py::overload_cast<TokenGroup::Ptr, Token::Ptr, WME::Ptr>(&ExplanationVisitor::visit))
         .def("visit", py::overload_cast<AssertedEvidence::Ptr, size_t>(&ExplanationVisitor::visit))
         .def("visit", py::overload_cast<InferredEvidence::Ptr, size_t>(&ExplanationVisitor::visit))
         .def("visit", py::overload_cast<Evidence::Ptr, size_t>(&ExplanationVisitor::visit))
@@ -139,6 +164,22 @@ void initRete(py::module_& m)
                 return self.str();
             }
         )
+    ;
+
+    py::class_<ExplanationToJSONVisitor, ExplanationVisitor>(m, "ExplanationToJSONVisitor")
+        .def(py::init<>(
+            [](){
+                auto visitor = std::make_unique<ExplanationToJSONVisitor>();
+                visitor->addToJSONConverter(std::make_shared<sempr::TupleWMEToJSONConverter>());
+                visitor->addToJSONConverter(std::make_shared<sempr::TupleGeoToJSONConverter>());
+                visitor->addToJSONConverter(std::make_shared<sempr::ECWMEToJSONConverter>());
+                return visitor;
+            }
+        ))
+        .def("json", [](const ExplanationToJSONVisitor& visitor) -> py::object
+        {
+            return visitor.json();
+        })
     ;
 
     // InferenceState

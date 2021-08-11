@@ -8,9 +8,16 @@
 #include <sempr/SeparateFileStorage.hpp>
 #include <sempr/RDF.hpp>
 #include <sempr/component/TripleContainer.hpp>
+#include <sempr/ECWMEToJSONConverter.hpp>
+#include <sempr/TupleWMEToJSONConverter.hpp>
+#include <sempr/TupleGeoToJSONConverter.hpp>
+
 #include <rete-reasoner/ExplanationToDotVisitor.hpp>
+#include <rete-reasoner/ExplanationToJSONVisitor.hpp>
 #include <rete-reasoner/RuleParser.hpp>
 #include <rete-reasoner/CallbackEffectBuilder.hpp>
+
+#include "external/pybind11_json.hpp"
 
 namespace py = pybind11;
 using namespace sempr;
@@ -218,6 +225,26 @@ void initCore(py::module_& m)
                     .getCurrentState()
                     .traverseExplanation(toExplain, visitor);
                 return visitor.str();
+            }
+        )
+        .def("explainAsJSON",
+            [](Core& self, const Triple& t) -> py::object
+            {
+                rete::ExplanationToJSONVisitor visitor;
+                visitor.addToJSONConverter(std::make_shared<sempr::TupleWMEToJSONConverter>());
+                visitor.addToJSONConverter(std::make_shared<sempr::TupleGeoToJSONConverter>());
+                visitor.addToJSONConverter(std::make_shared<sempr::ECWMEToJSONConverter>());
+
+                auto toExplain = std::make_shared<rete::Triple>(
+                    t.getField(Triple::Field::SUBJECT),
+                    t.getField(Triple::Field::PREDICATE),
+                    t.getField(Triple::Field::OBJECT)
+                );
+
+                self.reasoner()
+                    .getCurrentState()
+                    .traverseExplanation(toExplain, visitor);
+                return visitor.json();
             }
         )
         .def("registerCallbackEffect",

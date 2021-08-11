@@ -1,5 +1,6 @@
 import semprpy as sempr
 from semprpy import rdf, rdfs, rete
+import json
 
 core = sempr.Core()
 core.loadPlugins()
@@ -99,3 +100,15 @@ state.traverseExplanation(wmes[2], v)
 #print(v.dot())
 with open('test.dot', 'w+') as f:
     f.write(v.dot())
+
+
+v = rete.ExplanationToJSONVisitor()
+state.traverseExplanation(wmes[2], v)
+
+with open('test.json', 'w+') as f:
+    json.dump(v.json(), f, indent=4)
+
+
+print(core.explainAsJSON(
+    sempr.Triple(*wmes[2])
+))
