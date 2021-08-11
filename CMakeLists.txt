@@ -10,6 +10,8 @@ pkg_check_modules(sempr REQUIRED sempr-core)
 include_directories(${sempr_INCLUDE_DIRS})
 link_directories(${sempr_LIBRARY_DIRS})
 
+include_directories(src/external)
+
 find_library(SEMPR_RDF sempr_plugin_rdf HINTS /usr/lib/sempr_plugins)
 
 
